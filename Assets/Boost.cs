@@ -5,11 +5,17 @@ public class Boost : MonoBehaviour
 {
   [SerializeField] float rcsThrust = 100f;
   [SerializeField] float mainThrust = 100f;
+  [SerializeField] float levelLoadDelay = 2f;
+  [SerializeField] float effectsLoadDelay = 1f;
   [SerializeField] AudioClip mainEngine;
   [SerializeField] AudioClip mainFinish;
   [SerializeField] AudioClip mainDeath;
   [SerializeField] AudioClip explode;
   [SerializeField] AudioClip mainStart;
+
+  [SerializeField] ParticleSystem jetsParticles;
+  [SerializeField] ParticleSystem explodeParticles;
+  [SerializeField] ParticleSystem finishParticles;
   Rigidbody rigidBody;
   AudioSource audioSource;
 
@@ -57,7 +63,8 @@ public class Boost : MonoBehaviour
     state = State.Transcending;
     audioSource.Stop();
     audioSource.PlayOneShot(mainFinish);
-    Invoke("LoadNextLevel", 1f);
+    finishParticles.Play();
+    Invoke("LoadNextLevel", levelLoadDelay);
   }
 
 
@@ -66,13 +73,15 @@ public class Boost : MonoBehaviour
     state = State.Dying;
     audioSource.Stop();
     audioSource.PlayOneShot(mainDeath);
-    Invoke("PlayExplode", 1f);
-    Invoke("LoadFirstLevel", 2f);
+    Invoke("PlayExplode", effectsLoadDelay);
+    Invoke("LoadFirstLevel", levelLoadDelay);
   }
 
   private void PlayExplode()
   {
     audioSource.PlayOneShot(explode);
+    explodeParticles.Play();
+
   }
 
   private void RespondToThrustInput()
@@ -89,10 +98,11 @@ public class Boost : MonoBehaviour
 
   private void ApplyThrust()
   {
-    rigidBody.AddRelativeForce(Vector3.up * mainThrust);
+    rigidBody.AddRelativeForce(Vector3.up * mainThrust * Time.deltaTime);
     if (!audioSource.isPlaying)
     {
       audioSource.PlayOneShot(mainEngine);
+      jetsParticles.Play();
     }
   }
 
